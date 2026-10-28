@@ -7,7 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Melayani file statis dari folder public secara eksplisit
 app.use(express.static(path.join(__dirname, 'public')));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -21,16 +20,26 @@ app.post('/generate', async (req, res) => {
         Permintaan: ${userPrompt}
         Aturan ketat:
         1. Jangan gunakan JavaScript.
-        2. Output HARUS murni JSON: { "html": "<div class='x'></div>", "css": ".x { background: red; }" }
+        2. Output HARUS murni JSON valid tanpa teks lain: { "html": "<div class='x'>div</div>", "css": ".x { background: red; }" }
         3. Pastikan animasi berulang (infinite) dan terpusat.`;
 
         const result = await model.generateContent(systemInstruction);
         let responseText = result.response.text().trim();
-        if (responseText.startsWith('```json')) responseText = responseText.replace(/```json/g, '');
-        if (responseText.startsWith('```')) responseText = responseText.replace(/```/g, '');
         
-        res.json(JSON.parse(responseText));
+        // Membersihkan format markdown block dengan regex agar aman
+        responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        // Mengambil teks mulai dari kurung kurawal pertama sampai terakhir
+        const jsonStart = responseText.indexOf('{');
+        const jsonEnd = responseText.lastIndexOf('}');
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+            responseText = responseText.substring(jsonStart, jsonEnd + 1);
+        }
+
+        const parsedData = JSON.parse(responseText);
+        res.json(parsedData);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: "Gagal memproses animasi" });
     }
 });
