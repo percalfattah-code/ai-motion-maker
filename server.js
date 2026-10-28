@@ -7,8 +7,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Melayani file statis dari folder root proyek
-app.use(express.static(path.join(__dirname)));
+// Melayani file statis dari folder public secara eksplisit
+app.use(express.static(path.join(__dirname, 'public')));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
