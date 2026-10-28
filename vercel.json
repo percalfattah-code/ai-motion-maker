@@ -3,8 +3,8 @@
   "builds": [
     { "src": "server.js", "use": "@vercel/node" }
   ],
-  "routes": [
-    { "src": "/generate", "destination": "/server.js" },
-    { "src": "/(.*)", "destination": "/public/$1" }
+  "rewrites": [
+    { "source": "/generate", "destination": "/server.js" },
+    { "source": "/(.*)", "destination": "/public/$1" }
   ]
 }
