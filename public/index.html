@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alfa Motion Maker</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: #fff; margin: 0; padding: 15px; }
+        h2 { color: #c084fc; text-align: center; margin-bottom: 20px; }
+        .box { background: #1e293b; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #334155; }
+        textarea { width: 100%; height: 80px; padding: 10px; background: #0f172a; color: #fff; border: 1px solid #c084fc; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; background: #9333ea; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; box-shadow: 0 0 10px rgba(147, 51, 234, 0.5); }
+        button:active { background: #7e22ce; }
+        iframe { width: 100%; height: 250px; background: #fff; border-radius: 8px; border: none; margin-top: 10px; }
+        pre { background: #000; padding: 10px; border-radius: 8px; overflow-x: auto; font-size: 12px; color: #a5b4fc; }
+    </style>
+</head>
+<body>
+    <h2>⚡ Motion Maker</h2>
+    <div class="box">
+        <textarea id="promptInput" placeholder="Ketik: Bikin loading spinner bulat warna merah..."></textarea>
+        <button id="generateBtn" onclick="generateMotion()">Generate Animasi</button>
+    </div>
+    <div class="box">
+        <h3 style="margin-top:0; font-size: 16px;">Live Preview:</h3>
+        <iframe id="previewFrame"></iframe>
+    </div>
+    <div class="box">
+        <h3 style="margin-top:0; font-size: 16px;">Source Code:</h3>
+        <pre><code id="codeOutput">Kode akan muncul di sini...</code></pre>
+    </div>
+    <script>
+        async function generateMotion() {
+            const prompt = document.getElementById('promptInput').value;
+            const btn = document.getElementById('generateBtn');
+            const iframe = document.getElementById('previewFrame');
+            const codeOutput = document.getElementById('codeOutput');
+            
+            if(!prompt) return alert("Isi perintah dulu!");
+            btn.innerText = "⏳ Sedang Merakit...";
+            
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                
+                const data = await response.json();
+                codeOutput.innerText = `<!-- HTML -->\n${data.html}\n\n/* CSS */\n${data.css}`;
+
+                const renderCode = `
+                    <html>
+                    <head><style>
+                        body { margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background:#fff; }
+                        ${data.css}
+                    </style></head>
+                    <body>${data.html}</body>
+                    </html>
+                `;
+                iframe.srcdoc = renderCode;
+            } catch (err) {
+                alert("Gagal generate. Cek API Key atau server.");
+            }
+            btn.innerText = "Generate Animasi";
+        }
+    </script>
+</body>
+</html>
