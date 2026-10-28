@@ -4,7 +4,6 @@
     { "src": "server.js", "use": "@vercel/node" }
   ],
   "rewrites": [
-    { "source": "/generate", "destination": "/server.js" },
-    { "source": "/(.*)", "destination": "/public/$1" }
+    { "source": "/(.*)", "destination": "/server.js" }
   ]
 }

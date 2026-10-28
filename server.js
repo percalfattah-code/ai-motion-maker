@@ -1,11 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+
+// Melayani file statis dari folder root proyek
+app.use(express.static(path.join(__dirname)));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
