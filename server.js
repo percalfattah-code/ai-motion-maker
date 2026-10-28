@@ -15,32 +15,30 @@ app.post('/generate', async (req, res) => {
     const userPrompt = req.body.prompt;
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const systemInstruction = `Kamu adalah pembuat kode animasi HTML/CSS. 
-        Ubah permintaan ini menjadi animasi menggunakan HTML murni dan CSS animasi (@keyframes).
-        Permintaan: ${userPrompt}
-        Aturan ketat:
-        1. Jangan gunakan JavaScript.
-        2. Output HARUS murni JSON valid tanpa teks lain: { "html": "<div class='x'>div</div>", "css": ".x { background: red; }" }
-        3. Pastikan animasi berulang (infinite) dan terpusat.`;
+        const promptText = `Bertindaklah sebagai generator kode HTML dan CSS. Berdasarkan permintaan user: "${userPrompt}", buatkan kodenya.
+        Kamu WAJIB mengembalikan balasan HANYA berupa objek JSON murni dengan format persis seperti ini, tanpa markdown, tanpa teks lain:
+        {"html": "<div class='spinner'></div>", "css": ".spinner { width: 40px; height: 40px; border: 4px solid red; border-radius: 50%; animation: spin 1s infinite linear; } @keyframes spin { 100% { transform: rotate(360deg); } }"}`;
 
-        const result = await model.generateContent(systemInstruction);
-        let responseText = result.response.text().trim();
+        const result = await model.generateContent(promptText);
+        let rawText = result.response.text();
         
-        // Membersihkan format markdown block dengan regex agar aman
-        responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        // Membersihkan format markdown jika ada
+        rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+        const firstOpen = rawText.indexOf('{');
+        const lastClose = rawText.lastIndexOf('}');
         
-        // Mengambil teks mulai dari kurung kurawal pertama sampai terakhir
-        const jsonStart = responseText.indexOf('{');
-        const jsonEnd = responseText.lastIndexOf('}');
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-            responseText = responseText.substring(jsonStart, jsonEnd + 1);
+        if (firstOpen !== -1 && lastClose !== -1) {
+            rawText = rawText.substring(firstOpen, lastClose + 1);
         }
 
-        const parsedData = JSON.parse(responseText);
-        res.json(parsedData);
+        const jsonResponse = JSON.parse(rawText);
+        res.json(jsonResponse);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Gagal memproses animasi" });
+        console.error("Error API:", error);
+        res.status(500).json({ 
+            html: "<div style='color:red;'>Gagal memproses AI</div>", 
+            css: "body { display:flex; justify-content:center; align-items:center; }" 
+        });
     }
 });
 

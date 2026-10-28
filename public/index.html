@@ -47,20 +47,24 @@
                 });
                 
                 const data = await response.json();
-                codeOutput.innerText = `<!-- HTML -->\n${data.html}\n\n/* CSS */\n${data.css}`;
+                
+                const htmlCode = data.html || "<p>Gagal memuat HTML</p>";
+                const cssCode = data.css || "";
+                
+                codeOutput.innerText = `<!-- HTML -->\n${htmlCode}\n\n/* CSS */\n${cssCode}`;
 
                 const renderCode = `
                     <html>
                     <head><style>
                         body { margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background:#fff; }
-                        ${data.css}
+                        ${cssCode}
                     </style></head>
-                    <body>${data.html}</body>
+                    <body>${htmlCode}</body>
                     </html>
                 `;
                 iframe.srcdoc = renderCode;
             } catch (err) {
-                alert("Gagal generate. Cek API Key atau server.");
+                alert("Gagal koneksi ke server.");
             }
             btn.innerText = "Generate Animasi";
         }
